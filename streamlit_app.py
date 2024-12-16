@@ -1,11 +1,11 @@
 import pickle
-import gdown
 import numpy as np
 import pandas as pd
 import streamlit as st
 import plotly.express as px
 
-# Load model from Google Drive
+import gdown
+
 def load_model_from_drive(file_id):
     try:
         url = f'https://drive.google.com/uc?id={file_id}'
@@ -18,7 +18,6 @@ def load_model_from_drive(file_id):
         st.error(f"Error loading the model: {str(e)}")
         return None
 
-# Load Log transformation function from Google Drive
 def load_log_transform_from_drive(file_id):
     try:
         url = f'https://drive.google.com/uc?id={file_id}'
