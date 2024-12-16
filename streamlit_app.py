@@ -18,7 +18,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 try:
-    model_path = os.path.join(os.path.dirname(__file__), 'decision_tree_model.pkl')
+    model_path = os.path.join(os.path.dirname(),'decision_tree_model.pkl')
     logging.info(f"Loading model from: {model_path}")
     model = joblib.load(model_path)
 except Exception as e:
