@@ -135,7 +135,7 @@ def dataset_page():
 # صفحة About
 def about_page():
     st.title("About the Project")
-    st.image("path_to_your_image.jpg", caption="Diabetes Awareness", width=600)
+    st.image("diabetes_image.jpg", caption="Diabetes Awareness", width=600)
     st.write("""
         This project aims to predict whether a person is diabetic or not based on a dataset that includes various health factors. 
         The dataset primarily focuses on women and includes the following factors: Pregnancies, Glucose, Blood Pressure, 
