@@ -71,11 +71,16 @@ def predict_page():
     # إدخال البيانات في مصفوفة
     input_data = np.array([pregnancies, glucose, blood_pressure, skin_thickness, insulin, bmi, diabetes_pedigree, age])
 
-    # تطبيق التحويل اللوجاريتمي على المدخلات قبل التنبؤ
-    input_data_log_transformed = apply_log_transform(input_data)
+# استخدام np.log1p لتحويل القيم بطريقة آمنة (log(1 + x))
+    input_data_log_transformed = np.log1p(input_data)
 
-    # إعادة تشكيل المصفوفة
+# إعادة تشكيل المصفوفة
     input_data_log_transformed = input_data_log_transformed.reshape(1, -1)
+
+# التنبؤ بناءً على البيانات المدخلة
+if st.button("Predict"):
+    prediction = model.predict(input_data_log_transformed)
+    st.write("Prediction: ", "Diabetic" if prediction[0] == 1 else "Non-Diabetic")
 
     # التنبؤ بناءً على البيانات المدخلة
     if st.button("Predict"):
