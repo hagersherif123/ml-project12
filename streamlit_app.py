@@ -1,8 +1,9 @@
 import pickle
-import numpy as np
 import requests
+import numpy as np
 import pandas as pd
 import streamlit as st
+from sklearn.tree import DecisionTreeClassifier
 
 # Define the log transformation function
 def log_transform(data):
@@ -10,7 +11,6 @@ def log_transform(data):
 
 # Preprocess the input data
 def preprocess_input(data):
-    # Apply log transformation to the necessary columns
     columns_to_transform = ['Glucose', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI', 'Age']
     for column in columns_to_transform:
         if column in data:
@@ -80,25 +80,30 @@ def main():
         # Preprocess input data (apply log transformation)
         input_df = preprocess_input(input_df)
 
+        # Check the type of the loaded model
+        st.write("Model type:", type(model))
+
         try:
             # Predict using the model
-            prediction = model.predict(input_df)  # Ensure model is a fitted sklearn model
-            prediction_proba = model.predict_proba(input_df)
+            if hasattr(model, 'predict'):
+                prediction = model.predict(input_df)  # Ensure model is a fitted sklearn model
+                prediction_proba = model.predict_proba(input_df)
 
-            # Display prediction
-            st.markdown(f"""
-                <div style="font-size: 24px; padding: 10px; background-color: #f0f4f8; border: 2px solid #3e9f7d; border-radius: 5px; text-align: center;">
-                    <strong>Prediction:</strong> {'Diabetic' if prediction[0] == 1 else 'Non-Diabetic'}
-                </div>
-            """, unsafe_allow_html=True)
+                # Display prediction
+                st.markdown(f"""
+                    <div style="font-size: 24px; padding: 10px; background-color: #f0f4f8; border: 2px solid #3e9f7d; border-radius: 5px; text-align: center;">
+                        <strong>Prediction:</strong> {'Diabetic' if prediction[0] == 1 else 'Non-Diabetic'}
+                    </div>
+                """, unsafe_allow_html=True)
 
-            # Display probability
-            st.markdown(f"""
-                <div style="font-size: 20px; padding: 10px; background-color: #e8f5e9; border: 2px solid #4caf50; border-radius: 5px; text-align: center;">
-                    <strong>Probability of being Diabetic:</strong> {prediction_proba[0][1]:.2f}
-                </div>
-            """, unsafe_allow_html=True)
-
+                # Display probability
+                st.markdown(f"""
+                    <div style="font-size: 20px; padding: 10px; background-color: #e8f5e9; border: 2px solid #4caf50; border-radius: 5px; text-align: center;">
+                        <strong>Probability of being Diabetic:</strong> {prediction_proba[0][1]:.2f}
+                    </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.error("The loaded model does not have a 'predict' method. Please check the model.")
         except Exception as e:
             st.error(f"An error occurred during prediction: {e}")
 
