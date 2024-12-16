@@ -3,25 +3,30 @@ import pandas as pd
 import numpy as np
 import pickle
 import plotly.express as px
-import gdown  # مكتبة لتحميل الملفات من Google Drive
-
-# Function to download file from Google Drive
-def download_from_google_drive(url, output_path):
-    try:
-        gdown.download(url, output_path, quiet=False)
-    except Exception as e:
-        st.error(f"Error downloading the file: {str(e)}")
+import requests
 
 # Define the log transformation function
 def log_transform(data):
     return np.log1p(data)
 
 # Load the trained model
-def load_model(file_path):
+def load_model(file_url):
     try:
-        with open(file_path, 'rb') as file:
-            model = pickle.load(file)
-        return model
+        # Download the model from Google Drive
+        model_file = requests.get(file_url)
+        
+        # Check if the request was successful
+        if model_file.status_code == 200:
+            with open("/tmp/decision_tree_model.pkl", "wb") as f:
+                f.write(model_file.content)
+            
+            # Load the model from the file
+            with open("/tmp/decision_tree_model.pkl", 'rb') as file:
+                model = pickle.load(file)
+            return model
+        else:
+            st.error("Error downloading the file from Google Drive.")
+            return None
     except Exception as e:
         st.error(f"Error loading the model: {str(e)}")
         return None
@@ -56,16 +61,6 @@ def main():
     st.title("🩺 Diabetes Prediction App")
     st.write("Enter the patient's details below to predict the likelihood of diabetes.")
 
-    # Google Drive URL of the model
-    model_url = 'https://drive.google.com/uc?export=download&id=1Cx91Q_2AlsfidDzktxrCxCM3C3suZQGC'  # Extracted ID from the provided URL
-    model_path = 'model.pkl'
-    
-    # Download the model from Google Drive
-    download_from_google_drive(model_url, model_path)
-
-    # Load model
-    model = load_model(model_path)
-
     col1, col2 = st.columns(2)
 
     with col1:
@@ -79,6 +74,10 @@ def main():
         bmi = st.number_input("Body Mass Index (BMI)", min_value=0.0, max_value=70.0, value=25.0, step=0.1)
         dpf = st.number_input("Diabetes Pedigree Function", min_value=0.0, max_value=2.5, value=0.5, step=0.01)
         age = st.number_input("Age", min_value=0, max_value=120, value=30, step=1)
+
+    # Model URL (Google Drive link)
+    model_url = "https://drive.google.com/uc?export=download&id=1Cx91Q_2AlsfidDzktxrCxCM3C3suZQGC"
+    model = load_model(model_url)
 
     if model is not None:
         input_data = {
@@ -98,23 +97,27 @@ def main():
         input_df = pd.DataFrame(input_data, index=[0])
 
         try:
-            prediction = model.predict(input_df)
-            prediction_proba = model.predict_proba(input_df)
+            # Ensure the model has the predict method
+            if hasattr(model, 'predict'):
+                prediction = model.predict(input_df)
+                prediction_proba = model.predict_proba(input_df)
 
-            # Display prediction
-            st.markdown(f"""
-                <div style="font-size: 24px; padding: 10px; background-color: #f0f4f8; border: 2px solid #3e9f7d; border-radius: 5px; text-align: center;">
-                    <strong>Prediction:</strong> {'Diabetic' if prediction[0] == 1 else 'Non-Diabetic'}
-                </div>
-            """, unsafe_allow_html=True)
+                # Display prediction
+                st.markdown(f"""
+                    <div style="font-size: 24px; padding: 10px; background-color: #f0f4f8; border: 2px solid #3e9f7d; border-radius: 5px; text-align: center;">
+                        <strong>Prediction:</strong> {'Diabetic' if prediction[0] == 1 else 'Non-Diabetic'}
+                    </div>
+                """, unsafe_allow_html=True)
 
-            # Display probability
-            st.markdown(f"""
-                <div style="font-size: 20px; padding: 10px; background-color: #e8f5e9; border: 2px solid #4caf50; border-radius: 5px; text-align: center;">
-                    <strong>Probability of being Diabetic:</strong> {prediction_proba[0][1]:.2f}
-                </div>
-            """, unsafe_allow_html=True)
+                # Display probability
+                st.markdown(f"""
+                    <div style="font-size: 20px; padding: 10px; background-color: #e8f5e9; border: 2px solid #4caf50; border-radius: 5px; text-align: center;">
+                        <strong>Probability of being Diabetic:</strong> {prediction_proba[0][1]:.2f}
+                    </div>
+                """, unsafe_allow_html=True)
 
+            else:
+                st.error("The loaded model does not have a 'predict' method.")
         except Exception as e:
             st.error(f"An error occurred during prediction: {e}")
 
