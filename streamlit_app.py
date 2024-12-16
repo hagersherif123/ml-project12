@@ -71,11 +71,30 @@ def predict_page():
     # إدخال البيانات في مصفوفة
     input_data = np.array([pregnancies, glucose, blood_pressure, skin_thickness, insulin, bmi, diabetes_pedigree, age])
 
-# استخدام np.log1p لتحويل القيم بطريقة آمنة (log(1 + x))
-    input_data_log_transformed = np.log1p(input_data)
+    # تطبيق التحويل اللوجاريتمي على المدخلات قبل التنبؤ
+    input_data_log_transformed = apply_log_transform(input_data)
 
-# إعادة تشكيل المصفوفة
+    # إعادة تشكيل المصفوفة
     input_data_log_transformed = input_data_log_transformed.reshape(1, -1)
+
+    # التنبؤ بناءً على البيانات المدخلة
+    if st.button("Predict"):
+        prediction = model.predict(input_data_log_transformed)
+        result = "Diabetic" if prediction[0] == 1 else "Non-Diabetic"
+        
+        # عرض النتيجة مع بعض التنسيق
+        st.subheader(f"Prediction: {result}")
+        if result == "Diabetic":
+            st.write("The model predicts that the person is diabetic.")
+        else:
+            st.write("The model predicts that the person is not diabetic.")
+        
+        # عرض ألوان بناءً على النتيجة
+        if result == "Diabetic":
+            st.markdown("<div style='color:red; font-size:20px;'>Warning: The person might be diabetic. Please consult a doctor.</div>", unsafe_allow_html=True)
+        else:
+            st.markdown("<div style='color:green; font-size:20px;'>Good news: The person is not diabetic. Keep it up!</div>", unsafe_allow_html=True)
+
 
 # التنبؤ بناءً على البيانات المدخلة
 if st.button("Predict"):
