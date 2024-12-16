@@ -56,49 +56,7 @@ def apply_log_transform(input_data):
 # صفحة التنبؤ بمرض السكر
 def predict_page():
     st.title("Diabetes Prediction")
-    st.subheader("Predict whether a person has diabetes based on input data")
-
-    # إدخال البيانات من المستخدم
-    pregnancies = st.number_input("Pregnancies", min_value=0, max_value=17, step=1)
-    glucose = st.number_input("Glucose", min_value=44, max_value=199, step=1)
-    blood_pressure = st.number_input("Blood Pressure", min_value=24, max_value=122, step=1)
-    skin_thickness = st.number_input("Skin Thickness", min_value=7, max_value=99, step=1)
-    insulin = st.number_input("Insulin", min_value=14, max_value=846, step=1)
-    bmi = st.number_input("BMI", min_value=18.2, max_value=67.1, step=0.1)
-    diabetes_pedigree = st.number_input("Diabetes Pedigree Function", min_value=0.078, max_value=2.42, step=0.001)
-    age = st.number_input("Age", min_value=21, max_value=81, step=1)
-
-    # إدخال البيانات في مصفوفة
-    input_data = np.array([pregnancies, glucose, blood_pressure, skin_thickness, insulin, bmi, diabetes_pedigree, age])
-
-    # تطبيق التحويل اللوجاريتمي على المدخلات
-    input_data_log_transformed = apply_log_transform(input_data)
-
-    # إعادة تشكيل المصفوفة
-    input_data_log_transformed = input_data_log_transformed.reshape(1, -1)
-
-    # التنبؤ بناءً على البيانات المدخلة
-    if st.button("Predict"):
-        prediction = model.predict(input_data_log_transformed)
-        result = "Diabetic" if prediction[0] == 1 else "Non-Diabetic"
-        
-        # عرض النتيجة مع بعض التنسيق
-        st.subheader(f"Prediction: {result}")
-        if result == "Diabetic":
-            st.write("The model predicts that the person is diabetic.")
-        else:
-            st.write("The model predicts that the person is not diabetic.")
-        
-        # عرض ألوان بناءً على النتيجة
-        if result == "Diabetic":
-            st.markdown("<div style='color:red; font-size:20px;'>Warning: The person might be diabetic. Please consult a doctor.</div>", unsafe_allow_html=True)
-        else:
-            st.markdown("<div style='color:green; font-size:20px;'>Good news: The person is not diabetic. Keep it up!</div>", unsafe_allow_html=True)
-
-# صفحة Upload Dataset
-def dataset_page():
-    st.title("Upload Dataset and Visualize")
-    st.subheader("Upload your dataset and visualize its characteristics")
+    st.subheader("Upload your dataset and predict whether a person has diabetes or not")
 
     # تحميل الداتا
     uploaded_file = st.file_uploader("Choose a dataset", type=["csv", "xlsx"])
@@ -119,6 +77,36 @@ def dataset_page():
         st.subheader("Statistics")
         st.write(data.describe())
 
+        # التنبؤ بناءً على البيانات المدخلة
+        if st.button("Predict"):
+            # فرض أنه يوجد عمود "Outcome" في البيانات التي يتم التنبؤ عليها
+            X = data.drop(columns=["Outcome"])  # إزالة العمود المستهدف
+            y = data["Outcome"]
+            X_log_transformed = X.apply(np.log1p)  # تطبيق التحويل اللوجاريتمي على البيانات المدخلة
+
+            prediction = model.predict(X_log_transformed)
+            result = ["Diabetic" if pred == 1 else "Non-Diabetic" for pred in prediction]
+
+            data["Prediction"] = result  # إضافة التنبؤ إلى البيانات
+            st.subheader("Predictions")
+            st.dataframe(data.head())
+
+# صفحة Visualization
+def visualize_page():
+    st.title("Data Visualization")
+    st.subheader("Explore important aspects of the dataset")
+
+    # تحميل الداتا
+    uploaded_file = st.file_uploader("Choose a dataset", type=["csv", "xlsx"])
+    if uploaded_file is not None:
+        if uploaded_file.name.endswith(".csv"):
+            data = pd.read_csv(uploaded_file)
+        else:
+            data = pd.read_excel(uploaded_file)
+
+        st.write("Dataset Preview")
+        st.dataframe(data.head())
+
         # عرض بعض الرسومات البيانية
         st.subheader("Visualizations")
         
@@ -132,10 +120,20 @@ def dataset_page():
             sns.heatmap(data.corr(), annot=True, cmap="coolwarm", linewidths=0.5)
             st.pyplot()
 
+        if st.checkbox("Show Boxplot of Glucose"):
+            plt.figure(figsize=(8, 6))
+            sns.boxplot(x="Outcome", y="Glucose", data=data)
+            st.pyplot()
+
+        if st.checkbox("Show Histogram of Age"):
+            plt.figure(figsize=(8, 6))
+            sns.histplot(data["Age"], kde=True, bins=20)
+            st.pyplot()
+
 # صفحة About
 def about_page():
     st.title("About the Project")
-    st.image("diabetes_image.jpg", caption="Diabetes Awareness", width=600)
+    st.image("path_to_your_image.jpg", caption="Diabetes Awareness", width=600)
     st.write("""
         This project aims to predict whether a person is diabetic or not based on a dataset that includes various health factors. 
         The dataset primarily focuses on women and includes the following factors: Pregnancies, Glucose, Blood Pressure, 
@@ -157,16 +155,14 @@ def about_page():
 # إعداد شريط التنقل (Navigation Bar)
 def main():
     st.sidebar.title("Navigation")
-    page = st.sidebar.radio("Select a page", ["Diabetes Prediction", "Upload Dataset", "Visualize Data", "About"])
+    page = st.sidebar.radio("Select a page", ["About", "Visualize Data", "Diabetes Prediction"])
     
-    if page == "Diabetes Prediction":
-        predict_page()
-    elif page == "Upload Dataset":
-        dataset_page()
-    elif page == "Visualize Data":
-        dataset_page()
-    elif page == "About":
+    if page == "About":
         about_page()
+    elif page == "Visualize Data":
+        visualize_page()
+    elif page == "Diabetes Prediction":
+        predict_page()
 
 if __name__ == "__main__":
     main()
