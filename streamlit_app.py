@@ -3,6 +3,14 @@ import pandas as pd
 import numpy as np
 import pickle
 import plotly.express as px
+import gdown  # مكتبة لتحميل الملفات من Google Drive
+
+# Function to download file from Google Drive
+def download_from_google_drive(url, output_path):
+    try:
+        gdown.download(url, output_path, quiet=False)
+    except Exception as e:
+        st.error(f"Error downloading the file: {str(e)}")
 
 # Define the log transformation function
 def log_transform(data):
@@ -48,6 +56,16 @@ def main():
     st.title("🩺 Diabetes Prediction App")
     st.write("Enter the patient's details below to predict the likelihood of diabetes.")
 
+    # Google Drive URL of the model
+    model_url = 'https://drive.google.com/uc?export=download&id=1Cx91Q_2AlsfidDzktxrCxCM3C3suZQGC'  # Extracted ID from the provided URL
+    model_path = 'model.pkl'
+    
+    # Download the model from Google Drive
+    download_from_google_drive(model_url, model_path)
+
+    # Load model
+    model = load_model(model_path)
+
     col1, col2 = st.columns(2)
 
     with col1:
@@ -61,10 +79,6 @@ def main():
         bmi = st.number_input("Body Mass Index (BMI)", min_value=0.0, max_value=70.0, value=25.0, step=0.1)
         dpf = st.number_input("Diabetes Pedigree Function", min_value=0.0, max_value=2.5, value=0.5, step=0.01)
         age = st.number_input("Age", min_value=0, max_value=120, value=30, step=1)
-
-    # Load model
-    model_path = 'path/to/your/decision_tree_model.pkl'
-    model = load_model(model_path)
 
     if model is not None:
         input_data = {
