@@ -69,7 +69,7 @@ def predict_page():
         st.write("Dataset Preview")
         st.dataframe(data.head())
 
-        # تطبيق التحويل اللوجاريتمي على الأعمدة المناسبة في البيانات
+        # الأعمدة التي سيتم استخدام التحويل اللوجاريتمي عليها
         numeric_cols = data.select_dtypes(include=[np.number]).columns
         data[numeric_cols] = data[numeric_cols].apply(lambda x: np.log1p(x))
 
@@ -79,17 +79,26 @@ def predict_page():
 
         # التنبؤ بناءً على البيانات المدخلة
         if st.button("Predict"):
-            # فرض أنه يوجد عمود "Outcome" في البيانات التي يتم التنبؤ عليها
-            X = data.drop(columns=["Outcome"])  # إزالة العمود المستهدف
-            y = data["Outcome"]
-            X_log_transformed = X.apply(np.log1p)  # تطبيق التحويل اللوجاريتمي على البيانات المدخلة
+            # تأكد من أن الأعمدة المطلوبة موجودة في البيانات
+            required_cols = ["Pregnancies", "Glucose", "BloodPressure", "SkinThickness", "Insulin", "BMI", "DiabetesPedigreeFunction", "Age"]
+            
+            # التأكد من أن جميع الأعمدة المطلوبة موجودة في البيانات
+            missing_cols = [col for col in required_cols if col not in data.columns]
+            if missing_cols:
+                st.error(f"Missing columns: {', '.join(missing_cols)}")
+            else:
+                # إزالة عمود Outcome (إذا كان موجودًا)
+                X = data[required_cols]
+                X_log_transformed = X.apply(np.log1p)  # تطبيق التحويل اللوجاريتمي على البيانات المدخلة
 
-            prediction = model.predict(X_log_transformed)
-            result = ["Diabetic" if pred == 1 else "Non-Diabetic" for pred in prediction]
+                # التنبؤ باستخدام النموذج
+                prediction = model.predict(X_log_transformed)
+                result = ["Diabetic" if pred == 1 else "Non-Diabetic" for pred in prediction]
 
-            data["Prediction"] = result  # إضافة التنبؤ إلى البيانات
-            st.subheader("Predictions")
-            st.dataframe(data.head())
+                # إضافة التنبؤ إلى البيانات
+                data["Prediction"] = result  
+                st.subheader("Predictions")
+                st.dataframe(data.head())
 
 # صفحة Visualization
 def visualize_page():
