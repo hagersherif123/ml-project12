@@ -2,6 +2,9 @@ import joblib
 import streamlit as st
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from PIL import Image
 
 # تحميل النموذج
 def load_model():
@@ -70,21 +73,47 @@ def dataset_page():
         st.subheader("Distribution of Glucose Levels")
         st.bar_chart(data['Glucose'].value_counts())
 
+        st.subheader("Correlation Heatmap")
+        corr = data.corr()
+        plt.figure(figsize=(10, 8))
+        sns.heatmap(corr, annot=True, cmap="coolwarm", fmt=".2f")
+        st.pyplot()
+
+        st.subheader("Scatter Plot between BMI and Age")
+        plt.figure(figsize=(6, 4))
+        sns.scatterplot(x=data['BMI'], y=data['Age'], hue=data['Outcome'], palette="Set1")
+        st.pyplot()
+
 # صفحة شرح المشروع
 def about_page():
     st.title("About This Project")
+
+    # إضافة صورة تعبر عن مرض السكر
+    image = Image.open('diabetes_image.jpg')  # تأكد من أن الصورة موجودة في نفس المجلد أو حدد المسار الصحيح
+    st.image(image, caption='Diabetes Awareness')
+
     st.markdown("""
+    **Project Overview:**
     This is a diabetes prediction app developed using machine learning algorithms. 
     It predicts whether a person is diabetic based on various health metrics.
     
-    **Project Features:**
-    - Predict diabetes based on input data.
-    - Upload and analyze datasets for diabetes prediction.
+    **Dataset Information:**
+    The dataset used in this project is a collection of health information for women, specifically focusing on diabetes prediction. 
+    It includes the following features:
+    - **Pregnancies**: The number of pregnancies a woman has had.
+    - **Glucose**: Plasma glucose concentration a 2 hours in an oral glucose tolerance test.
+    - **Blood Pressure**: Diastolic blood pressure (mm Hg).
+    - **Skin Thickness**: Triceps skinfold thickness (mm).
+    - **Insulin**: 2-Hour serum insulin (mu U/ml).
+    - **BMI**: Body mass index (weight in kg / height in m^2).
+    - **Diabetes Pedigree Function**: A function that scores the likelihood of diabetes based on family history.
+    - **Age**: The age of the person.
     
-    **Technology Stack:**
-    - Machine Learning with Decision Tree
-    - Streamlit for Web Interface
-    - Python for Data Processing and Analysis
+    **Data Preprocessing:**
+    All numerical inputs are transformed using a logarithmic transformation to reduce the skewness and improve the model performance.
+
+    **Model Overview:**
+    The model uses a Decision Tree classifier to predict whether a person has diabetes or not based on the input features.
     """)
 
 # إعداد شريط التنقل (Navigation Bar)
