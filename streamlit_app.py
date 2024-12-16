@@ -47,7 +47,7 @@ def main():
 
     # Define the Google Drive links (with direct download)
     model_url = "https://drive.google.com/file/d/1Cx91Q_2AlsfidDzktxrCxCM3C3suZQGC/view?usp=sharing"
-    log_transform_url = "https://drive.google.com/file/d/1URz0ERV8mycKj9M2JABAUHNfq7qVyRxo/view?usp=sharing"
+    log_transform_url = "https://drive.google.com/file/d/1URz0ERV8mycKj9M2JABAUHNfq7qVyRxo/view"
 
     # تحميل الموديل و log_transform
     model = load_model("model.pkl")
