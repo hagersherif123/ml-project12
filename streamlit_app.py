@@ -1,6 +1,9 @@
 import joblib
 import streamlit as st
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # تحميل النموذج
 def load_model():
@@ -9,6 +12,46 @@ def load_model():
 
 # تحميل النموذج
 model = load_model()
+
+# إضافة تنسيق CSS لتحسين التصميم
+st.markdown("""
+    <style>
+        body {
+            background-color: #f0f8ff;
+            color: #00008b;
+        }
+        .stButton>button {
+            background-color: #00008b;
+            color: white;
+            font-size: 16px;
+            border-radius: 8px;
+        }
+        .stButton>button:hover {
+            background-color: #4682b4;
+        }
+        .stTitle {
+            font-size: 32px;
+            font-weight: bold;
+            color: #00008b;
+        }
+        .stSubheader {
+            font-size: 22px;
+            color: #00008b;
+        }
+        .stTextInput>div>input {
+            background-color: #ffffff;
+            border: 2px solid #00008b;
+            color: #00008b;
+        }
+        .stTextInput>div>input:focus {
+            border: 2px solid #4682b4;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+# تطبيق التحويل اللوجاريتمي على المدخلات
+def apply_log_transform(input_data):
+    return np.log1p(input_data)  # تطبيق log(1+x) بشكل آمن
 
 # صفحة التنبؤ بمرض السكر
 def predict_page():
@@ -25,15 +68,18 @@ def predict_page():
     diabetes_pedigree = st.number_input("Diabetes Pedigree Function", min_value=0.078, max_value=2.42, step=0.001)
     age = st.number_input("Age", min_value=21, max_value=81, step=1)
 
-    # لا نطبق التحويل اللوجاريتمي على المدخلات في هذه الحالة
+    # إدخال البيانات في مصفوفة
     input_data = np.array([pregnancies, glucose, blood_pressure, skin_thickness, insulin, bmi, diabetes_pedigree, age])
 
+    # تطبيق التحويل اللوجاريتمي على المدخلات
+    input_data_log_transformed = apply_log_transform(input_data)
+
     # إعادة تشكيل المصفوفة
-    input_data = input_data.reshape(1, -1)
+    input_data_log_transformed = input_data_log_transformed.reshape(1, -1)
 
     # التنبؤ بناءً على البيانات المدخلة
     if st.button("Predict"):
-        prediction = model.predict(input_data)
+        prediction = model.predict(input_data_log_transformed)
         result = "Diabetic" if prediction[0] == 1 else "Non-Diabetic"
         
         # عرض النتيجة مع بعض التنسيق
@@ -49,14 +95,75 @@ def predict_page():
         else:
             st.markdown("<div style='color:green; font-size:20px;'>Good news: The person is not diabetic. Keep it up!</div>", unsafe_allow_html=True)
 
+# صفحة Upload Dataset
+def dataset_page():
+    st.title("Upload Dataset and Visualize")
+    st.subheader("Upload your dataset and visualize its characteristics")
+
+    # تحميل الداتا
+    uploaded_file = st.file_uploader("Choose a dataset", type=["csv", "xlsx"])
+    if uploaded_file is not None:
+        if uploaded_file.name.endswith(".csv"):
+            data = pd.read_csv(uploaded_file)
+        else:
+            data = pd.read_excel(uploaded_file)
+
+        st.write("Dataset Preview")
+        st.dataframe(data.head())
+
+        # تطبيق التحويل اللوجاريتمي على الأعمدة المناسبة في البيانات
+        numeric_cols = data.select_dtypes(include=[np.number]).columns
+        data[numeric_cols] = data[numeric_cols].apply(lambda x: np.log1p(x))
+
+        # عرض بعض الإحصائيات
+        st.subheader("Statistics")
+        st.write(data.describe())
+
+        # عرض بعض الرسومات البيانية
+        st.subheader("Visualizations")
+        
+        # رسم المخطط البياني التوضيحي
+        if st.checkbox("Show Pairplot"):
+            sns.pairplot(data)
+            st.pyplot()
+
+        if st.checkbox("Show Correlation Heatmap"):
+            plt.figure(figsize=(10, 8))
+            sns.heatmap(data.corr(), annot=True, cmap="coolwarm", linewidths=0.5)
+            st.pyplot()
+
+# صفحة About
+def about_page():
+    st.title("About the Project")
+    st.image("path_to_your_image.jpg", caption="Diabetes Awareness", width=600)
+    st.write("""
+        This project aims to predict whether a person is diabetic or not based on a dataset that includes various health factors. 
+        The dataset primarily focuses on women and includes the following factors: Pregnancies, Glucose, Blood Pressure, 
+        Skin Thickness, Insulin, BMI, Diabetes Pedigree Function, and Age.
+    """)
+    
+    st.subheader("Dataset Features")
+    st.write("""
+        1. **Pregnancies**: The number of times the person has been pregnant.
+        2. **Glucose**: Plasma glucose concentration in the blood.
+        3. **Blood Pressure**: Diastolic blood pressure (mm Hg).
+        4. **Skin Thickness**: Triceps skinfold thickness (mm).
+        5. **Insulin**: 2-Hour serum insulin (mu U/ml).
+        6. **BMI**: Body mass index (weight in kg / height in m^2).
+        7. **Diabetes Pedigree Function**: A function that scores the likelihood of diabetes based on family history.
+        8. **Age**: The age of the person in years.
+    """)
+
 # إعداد شريط التنقل (Navigation Bar)
 def main():
     st.sidebar.title("Navigation")
-    page = st.sidebar.radio("Select a page", ["Diabetes Prediction", "Upload Dataset", "About"])
+    page = st.sidebar.radio("Select a page", ["Diabetes Prediction", "Upload Dataset", "Visualize Data", "About"])
     
     if page == "Diabetes Prediction":
         predict_page()
     elif page == "Upload Dataset":
+        dataset_page()
+    elif page == "Visualize Data":
         dataset_page()
     elif page == "About":
         about_page()
