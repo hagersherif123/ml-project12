@@ -51,7 +51,9 @@ def visualize_correlations(df):
 
 # Main Streamlit app
 def main():
+    # Set page config as the first command
     st.set_page_config(page_title="Diabetes Prediction", page_icon="🩺", layout="wide")
+
     st.title("🩺 Diabetes Prediction App")
     st.write("Enter the patient's details below to predict the likelihood of diabetes.")
 
