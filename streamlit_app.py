@@ -1,7 +1,7 @@
-import numpy as np
-import pandas as pd
-import requests
 import pickle
+import numpy as np
+import requests
+import pandas as pd
 import streamlit as st
 
 # Define the log transformation function
@@ -82,7 +82,7 @@ def main():
 
         try:
             # Predict using the model
-            prediction = model.predict(input_df)
+            prediction = model.predict(input_df)  # Ensure model is a fitted sklearn model
             prediction_proba = model.predict_proba(input_df)
 
             # Display prediction
