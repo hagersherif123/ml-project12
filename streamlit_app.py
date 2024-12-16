@@ -11,12 +11,16 @@ import matplotlib.pyplot as plt
 model = joblib.load('decision_tree_model.pkl')
 import os
 import joblib
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 try:
     model_path = os.path.join(os.path.dirname(__file__), 'decision_tree_model.pkl')
+    logging.info(f"Loading model from: {model_path}")
     model = joblib.load(model_path)
 except Exception as e:
-    print(f"Error loading model: {e}")
+    logging.error(f"Error loading model: {e}")
     model = None
 
 # Sample dataset (you should replace this with your actual dataset)
