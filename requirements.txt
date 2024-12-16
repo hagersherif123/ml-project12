@@ -1,1 +1,2 @@
 streamlit
+pip install streamlit joblib numpy pandas plotly seaborn matplotlib
