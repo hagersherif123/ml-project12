@@ -1,6 +1,21 @@
+import numpy as np
+import pandas as pd
 import requests
 import pickle
 import streamlit as st
+
+# Define the log transformation function
+def log_transform(data):
+    return np.log1p(data)
+
+# Preprocess the input data
+def preprocess_input(data):
+    # Apply log transformation to the necessary columns
+    columns_to_transform = ['Glucose', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI', 'Age']
+    for column in columns_to_transform:
+        if column in data:
+            data[column] = log_transform(data[column])  # Apply log transform
+    return data
 
 # Load the model directly from Google Drive
 def load_model_from_google_drive(url):
@@ -47,6 +62,7 @@ def main():
     model = load_model_from_google_drive(model_url)
 
     if model is not None:
+        # Create input data dictionary
         input_data = {
             'Pregnancies': pregnancies,
             'Glucose': glucose,
@@ -58,12 +74,14 @@ def main():
             'Age': age
         }
 
-        # Preprocess input data (apply log transformation)
-        input_data = preprocess_input(input_data)
+        # Convert the input data to DataFrame
+        input_df = pd.DataFrame([input_data])
 
-        input_df = pd.DataFrame(input_data, index=[0])
+        # Preprocess input data (apply log transformation)
+        input_df = preprocess_input(input_df)
 
         try:
+            # Predict using the model
             prediction = model.predict(input_df)
             prediction_proba = model.predict_proba(input_df)
 
