@@ -16,11 +16,15 @@ def download_file_from_drive(file_url):
         return None
 
 # تحميل الموديل
-def load_model(file_path):
+def load_model(file_url):
     try:
-        with open(file_path, 'rb') as file:
-            model = pickle.load(file)
-        return model
+        model_file = download_file_from_drive(file_url)
+        if model_file:
+            model = pickle.load(model_file)
+            return model
+        else:
+            st.error("Failed to download the model file.")
+            return None
     except Exception as e:
         st.error(f"Error loading the model: {str(e)}")
         return None
@@ -47,10 +51,10 @@ def main():
 
     # Define the Google Drive links (with direct download)
     model_url = "https://drive.google.com/file/d/1Cx91Q_2AlsfidDzktxrCxCM3C3suZQGC/view?usp=sharing"
-    log_transform_url = "https://drive.google.com/file/d/1URz0ERV8mycKj9M2JABAUHNfq7qVyRxo/view"
+    log_transform_url = "https://drive.google.com/file/d/1URz0ERV8mycKj9M2JABAUHNfq7qVyRxo/view?usp=sharing"
 
     # تحميل الموديل و log_transform
-    model = load_model("model.pkl")
+    model = load_model(model_url)
     log_transform = load_log_transform(log_transform_url)
 
     if model is not None and log_transform is not None:
