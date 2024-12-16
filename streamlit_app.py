@@ -1,34 +1,55 @@
 import pickle
 import numpy as np
 import pandas as pd
-import streamlit as st
 import plotly.express as px
-
 import gdown
+import streamlit as st
 
+# Function to load model from Google Drive
 def load_model_from_drive(file_id):
     try:
         url = f'https://drive.google.com/uc?id={file_id}'
         output = 'model.pkl'
+        st.write("Downloading model from Google Drive...")
         gdown.download(url, output, quiet=False)
+        st.write(f"Model downloaded to: {output}")
+
         with open(output, 'rb') as file:
             model = pickle.load(file)
+        st.write("Model loaded successfully.")
         return model
     except Exception as e:
         st.error(f"Error loading the model: {str(e)}")
         return None
 
+# Function to load log transform from Google Drive
 def load_log_transform_from_drive(file_id):
     try:
         url = f'https://drive.google.com/uc?id={file_id}'
         output = 'log_transform.pkl'
+        st.write("Downloading log transform from Google Drive...")
         gdown.download(url, output, quiet=False)
+        st.write(f"Log transform downloaded to: {output}")
+
         with open(output, 'rb') as file:
             log_transform = pickle.load(file)
+        st.write("Log transform loaded successfully.")
         return log_transform
     except Exception as e:
         st.error(f"Error loading the log transform: {str(e)}")
         return None
+
+# Add file_ids for your model and log transform here
+model_file_id = 'YOUR_MODEL_FILE_ID'
+log_transform_file_id = 'YOUR_LOG_TRANSFORM_FILE_ID'
+
+# Try loading the model and log transform
+model = load_model_from_drive(model_file_id)
+log_transform = load_log_transform_from_drive(log_transform_file_id)
+
+if model is None or log_transform is None:
+    st.error("Model or log transform could not be loaded properly.")
+
 
 # Preprocess the input data with Log transformation
 def preprocess_input_with_log(data, log_transform):
