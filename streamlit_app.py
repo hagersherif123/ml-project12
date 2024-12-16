@@ -6,6 +6,8 @@ import plotly.express as px
 import plotly.figure_factory as ff
 import seaborn as sns
 import matplotlib.pyplot as plt
+import sys
+print(f"Python version: {sys.version}")
 
 # Load the pre-trained model
 model = joblib.load('decision_tree_model.pkl')
