@@ -9,6 +9,15 @@ import matplotlib.pyplot as plt
 
 # Load the pre-trained model
 model = joblib.load('decision_tree_model.pkl')
+import os
+import joblib
+
+try:
+    model_path = os.path.join(os.path.dirname(__file__), 'decision_tree_model.pkl')
+    model = joblib.load(model_path)
+except Exception as e:
+    print(f"Error loading model: {e}")
+    model = None
 
 # Sample dataset (you should replace this with your actual dataset)
 def load_sample_data():
