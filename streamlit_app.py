@@ -23,10 +23,16 @@ bmi = st.number_input("BMI", min_value=18.2, max_value=67.1)
 diabetes_pedigree = st.number_input("Diabetes Pedigree Function", min_value=0.078, max_value=2.42)
 age = st.number_input("Age", min_value=21, max_value=81)
 
-# إنشاء مصفوفة البيانات المدخلة
-input_data = np.array([pregnancies, glucose, blood_pressure, skin_thickness, insulin, bmi, diabetes_pedigree, age]).reshape(1, -1)
+# تطبيق التحويل اللوجاريتمي على المدخلات
+input_data = np.array([pregnancies, glucose, blood_pressure, skin_thickness, insulin, bmi, diabetes_pedigree, age])
+
+# استخدام np.log1p لتحويل القيم بطريقة آمنة (log(1 + x))
+input_data_log_transformed = np.log1p(input_data)
+
+# إعادة تشكيل المصفوفة
+input_data_log_transformed = input_data_log_transformed.reshape(1, -1)
 
 # التنبؤ بناءً على البيانات المدخلة
 if st.button("Predict"):
-    prediction = model.predict(input_data)
+    prediction = model.predict(input_data_log_transformed)
     st.write("Prediction: ", "Diabetic" if prediction[0] == 1 else "Non-Diabetic")
