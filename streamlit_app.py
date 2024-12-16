@@ -56,49 +56,45 @@ def apply_log_transform(input_data):
 # صفحة التنبؤ بمرض السكر
 def predict_page():
     st.title("Diabetes Prediction")
-    st.subheader("Upload your dataset and predict whether a person has diabetes or not")
+    st.subheader("Predict whether a person has diabetes based on input data")
 
-    # تحميل الداتا
-    uploaded_file = st.file_uploader("Choose a dataset", type=["csv", "xlsx"])
-    if uploaded_file is not None:
-        if uploaded_file.name.endswith(".csv"):
-            data = pd.read_csv(uploaded_file)
+    # إدخال البيانات من المستخدم
+    pregnancies = st.number_input("Pregnancies", min_value=0, max_value=17, step=1)
+    glucose = st.number_input("Glucose", min_value=44, max_value=199, step=1)
+    blood_pressure = st.number_input("Blood Pressure", min_value=24, max_value=122, step=1)
+    skin_thickness = st.number_input("Skin Thickness", min_value=7, max_value=99, step=1)
+    insulin = st.number_input("Insulin", min_value=14, max_value=846, step=1)
+    bmi = st.number_input("BMI", min_value=18.2, max_value=67.1, step=0.1)
+    diabetes_pedigree = st.number_input("Diabetes Pedigree Function", min_value=0.078, max_value=2.42, step=0.001)
+    age = st.number_input("Age", min_value=21, max_value=81, step=1)
+
+    # إدخال البيانات في مصفوفة
+    input_data = np.array([pregnancies, glucose, blood_pressure, skin_thickness, insulin, bmi, diabetes_pedigree, age])
+
+    # تطبيق التحويل اللوجاريتمي على المدخلات قبل التنبؤ
+    input_data_log_transformed = apply_log_transform(input_data)
+
+    # إعادة تشكيل المصفوفة
+    input_data_log_transformed = input_data_log_transformed.reshape(1, -1)
+
+    # التنبؤ بناءً على البيانات المدخلة
+    if st.button("Predict"):
+        prediction = model.predict(input_data_log_transformed)
+        result = "Diabetic" if prediction[0] == 1 else "Non-Diabetic"
+        
+        # عرض النتيجة مع بعض التنسيق
+        st.subheader(f"Prediction: {result}")
+        if result == "Diabetic":
+            st.write("The model predicts that the person is diabetic.")
         else:
-            data = pd.read_excel(uploaded_file)
+            st.write("The model predicts that the person is not diabetic.")
+        
+        # عرض ألوان بناءً على النتيجة
+        if result == "Diabetic":
+            st.markdown("<div style='color:red; font-size:20px;'>Warning: The person might be diabetic. Please consult a doctor.</div>", unsafe_allow_html=True)
+        else:
+            st.markdown("<div style='color:green; font-size:20px;'>Good news: The person is not diabetic. Keep it up!</div>", unsafe_allow_html=True)
 
-        st.write("Dataset Preview")
-        st.dataframe(data.head())
-
-        # الأعمدة التي سيتم استخدام التحويل اللوجاريتمي عليها
-        numeric_cols = data.select_dtypes(include=[np.number]).columns
-        data[numeric_cols] = data[numeric_cols].apply(lambda x: np.log1p(x))
-
-        # عرض بعض الإحصائيات
-        st.subheader("Statistics")
-        st.write(data.describe())
-
-        # التنبؤ بناءً على البيانات المدخلة
-        if st.button("Predict"):
-            # تأكد من أن الأعمدة المطلوبة موجودة في البيانات
-            required_cols = ["Pregnancies", "Glucose", "BloodPressure", "SkinThickness", "Insulin", "BMI", "DiabetesPedigreeFunction", "Age"]
-            
-            # التأكد من أن جميع الأعمدة المطلوبة موجودة في البيانات
-            missing_cols = [col for col in required_cols if col not in data.columns]
-            if missing_cols:
-                st.error(f"Missing columns: {', '.join(missing_cols)}")
-            else:
-                # إزالة عمود Outcome (إذا كان موجودًا)
-                X = data[required_cols]
-                X_log_transformed = X.apply(np.log1p)  # تطبيق التحويل اللوجاريتمي على البيانات المدخلة
-
-                # التنبؤ باستخدام النموذج
-                prediction = model.predict(X_log_transformed)
-                result = ["Diabetic" if pred == 1 else "Non-Diabetic" for pred in prediction]
-
-                # إضافة التنبؤ إلى البيانات
-                data["Prediction"] = result  
-                st.subheader("Predictions")
-                st.dataframe(data.head())
 
 # صفحة Visualization
 def visualize_page():
